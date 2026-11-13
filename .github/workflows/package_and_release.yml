@@ -1,0 +1,134 @@
+name: Package and Release
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish-to-github:
+        description: Create a GitHub release?
+        required: false
+        default: true
+        type: boolean
+      simulate:
+        description: Simulate execution?
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  package:
+    name: Package
+    runs-on: windows-2025
+    timeout-minutes: 20
+    outputs:
+      version: ${{ steps.read_version.outputs.version }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Read version
+        id: read_version
+        run: |
+          $version = (Get-Content VERSION -Raw).Trim()
+          if ($version -notmatch '^\d+\.\d+\.\d+$') {
+            Write-Error "VERSION must contain a semantic version such as 0.2.0"
+            exit 1
+          }
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.mod
+
+      - name: Test
+        run: go test ./...
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Build
+        run: |
+          $package = "safecracker-fix-${{ steps.read_version.outputs.version }}-windows-amd64"
+          New-Item -ItemType Directory -Path "dist\$package" -Force | Out-Null
+          go build -trimpath -o "dist\$package\safecracker-fix.exe" ./cmd/safecracker-fix
+          Copy-Item README.md, LICENSE "dist\$package\"
+
+      - name: Package release
+        run: |
+          $package = "safecracker-fix-${{ steps.read_version.outputs.version }}-windows-amd64"
+          $archive = "dist\$package.zip"
+          Compress-Archive -Path "dist\$package\*" -DestinationPath $archive
+          $hash = (Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash *$package.zip" | Set-Content "dist\$package.zip.sha256" -Encoding ascii
+
+      - name: Create tag
+        if: ${{ !inputs.simulate }}
+        run: |
+          $tag = "v${{ steps.read_version.outputs.version }}"
+          $remoteLine = git ls-remote --refs origin "refs/tags/$tag"
+          if ($remoteLine) {
+            $remoteSha = ($remoteLine -split '\s+')[0]
+            if ($remoteSha -ne $env:GITHUB_SHA) {
+              Write-Error "$tag already exists at a different commit"
+              exit 1
+            }
+            exit 0
+          }
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag $tag
+          git push origin $tag
+
+      - name: Upload package
+        uses: actions/upload-artifact@v7
+        with:
+          name: package
+          path: |
+            dist/safecracker-fix-${{ steps.read_version.outputs.version }}-windows-amd64.zip
+            dist/safecracker-fix-${{ steps.read_version.outputs.version }}-windows-amd64.zip.sha256
+
+  release:
+    name: Release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    needs: [package]
+    if: ${{ inputs.publish-to-github }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Download package
+        uses: actions/download-artifact@v8
+        with:
+          name: package
+
+      - name: Prepare release notes
+        run: |
+          NOTES=".github/release-notes/${{ needs.package.outputs.version }}.md"
+          if [[ -s "$NOTES" ]]; then
+            cp "$NOTES" release-notes.md
+          else
+            : > release-notes.md
+          fi
+
+      - name: Create GitHub release
+        if: ${{ !inputs.simulate }}
+        run: |
+          notes=()
+          if [[ -s release-notes.md ]]; then
+            notes=(--notes-file release-notes.md)
+          fi
+          gh release create "v${{ needs.package.outputs.version }}" \
+            "safecracker-fix-${{ needs.package.outputs.version }}-windows-amd64.zip" \
+            "safecracker-fix-${{ needs.package.outputs.version }}-windows-amd64.zip.sha256" \
+            --generate-notes --verify-tag \
+            "${notes[@]}" \
+            --title "Safecracker Fix Utility v${{ needs.package.outputs.version }}" \
+            --repo "$GITHUB_REPOSITORY"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

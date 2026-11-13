@@ -1,0 +1,11 @@
+# Build and test outputs
+/bin/
+/dist/
+/safecracker-fix
+/safecracker-fix.exe
+*.test
+coverage.out
+
+# Local development
+.vscode/
+.idea/
