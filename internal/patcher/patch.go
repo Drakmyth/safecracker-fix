@@ -12,9 +12,11 @@ type Edit struct {
 	Replacement []byte
 }
 
+type PatchID string
+
 // Patch describes a complete, reversible functional change to a binary
 type Patch struct {
-	ID    string
+	ID    PatchID
 	Name  string
 	Edits []Edit
 }

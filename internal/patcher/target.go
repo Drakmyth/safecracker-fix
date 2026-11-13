@@ -5,9 +5,11 @@ import (
 	"fmt"
 )
 
+type TargetID string
+
 // Target describes a supported binary version and the patches that can be applied to it
 type Target struct {
-	ID           string
+	ID           TargetID
 	Name         string
 	OriginalHash [sha256.Size]byte
 	Size         int64
@@ -28,7 +30,7 @@ func (t Target) Validate() error {
 		return fmt.Errorf("target %q contains no patches", t.ID)
 	}
 
-	seen := make(map[string]struct{}, len(t.Patches))
+	seen := make(map[PatchID]struct{}, len(t.Patches))
 
 	for _, patch := range t.Patches {
 		if err := patch.Validate(t.Size); err != nil {

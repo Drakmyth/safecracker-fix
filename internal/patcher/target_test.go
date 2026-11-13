@@ -6,6 +6,13 @@ import (
 )
 
 func TestTargetValidate(t *testing.T) {
+	const (
+		DEFAULT_TARGET_ID   TargetID = "test-target"
+		DEFAULT_TARGET_SIZE          = 10
+		PATCH_A             PatchID  = "a"
+		PATCH_B             PatchID  = "b"
+	)
+
 	edit := func(offset int64, length int) Edit {
 		original := make([]byte, length)
 		replacement := make([]byte, length)
@@ -21,19 +28,14 @@ func TestTargetValidate(t *testing.T) {
 		}
 	}
 
-	patch := func(id string, edits ...Edit) Patch {
+	patch := func(id PatchID, edits ...Edit) Patch {
 		return Patch{
 			ID:    id,
 			Edits: edits,
 		}
 	}
 
-	const (
-		DEFAULT_TARGET_ID   = "test-target"
-		DEFAULT_TARGET_SIZE = 10
-	)
-
-	target := func(id string, size int64, patches ...Patch) Target {
+	target := func(id TargetID, size int64, patches ...Patch) Target {
 		return Target{
 			ID:           id,
 			OriginalHash: sha256.Sum256(make([]byte, DEFAULT_TARGET_SIZE)),
@@ -54,28 +56,28 @@ func TestTargetValidate(t *testing.T) {
 		{
 			name: "valid target",
 			target: defaultTarget(
-				patch("a", edit(0, 2)),
-				patch("b", edit(5, 2)),
+				patch(PATCH_A, edit(0, 2)),
+				patch(PATCH_B, edit(5, 2)),
 			),
 		},
 		{
 			name: "empty ID",
-			target: target("", 10,
-				patch("a", edit(0, 2)),
+			target: target("", DEFAULT_TARGET_SIZE,
+				patch(PATCH_A, edit(0, 2)),
 			),
 			wantErr: true,
 		},
 		{
 			name: "zero size",
 			target: target(DEFAULT_TARGET_ID, 0,
-				patch("a", edit(0, 2)),
+				patch(PATCH_A, edit(0, 2)),
 			),
 			wantErr: true,
 		},
 		{
 			name: "negative size",
 			target: target(DEFAULT_TARGET_ID, -1,
-				patch("a", edit(0, 2)),
+				patch(PATCH_A, edit(0, 2)),
 			),
 			wantErr: true,
 		},
@@ -87,53 +89,53 @@ func TestTargetValidate(t *testing.T) {
 		{
 			name: "invalid patch",
 			target: defaultTarget(
-				patch("a"),
+				patch(PATCH_A),
 			),
 			wantErr: true,
 		},
 		{
 			name: "duplicate patch IDs",
 			target: defaultTarget(
-				patch("a", edit(0, 2)),
-				patch("a", edit(5, 2)),
+				patch(PATCH_A, edit(0, 2)),
+				patch(PATCH_A, edit(5, 2)),
 			),
 			wantErr: true,
 		},
 		{
 			name: "adjacent patches",
 			target: defaultTarget(
-				patch("a", edit(0, 2)),
-				patch("b", edit(2, 2)),
+				patch(PATCH_A, edit(0, 2)),
+				patch(PATCH_B, edit(2, 2)),
 			),
 		},
 		{
 			name: "overlapping patches",
 			target: defaultTarget(
-				patch("a", edit(0, 2)),
-				patch("b", edit(1, 2)),
+				patch(PATCH_A, edit(0, 2)),
+				patch(PATCH_B, edit(1, 2)),
 			),
 			wantErr: true,
 		},
 		{
 			name: "identical patch ranges",
 			target: defaultTarget(
-				patch("a", edit(0, 2)),
-				patch("b", edit(0, 2)),
+				patch(PATCH_A, edit(0, 2)),
+				patch(PATCH_B, edit(0, 2)),
 			),
 			wantErr: true,
 		},
 		{
 			name: "patch exceeds target size",
 			target: defaultTarget(
-				patch("a", edit(9, 2)),
+				patch(PATCH_A, edit(9, 2)),
 			),
 			wantErr: true,
 		},
 		{
 			name: "overlap in secondary edit",
 			target: defaultTarget(
-				patch("a", edit(0, 2), edit(6, 1)),
-				patch("b", edit(5, 2)),
+				patch(PATCH_A, edit(0, 2), edit(6, 1)),
+				patch(PATCH_B, edit(5, 2)),
 			),
 			wantErr: true,
 		},
