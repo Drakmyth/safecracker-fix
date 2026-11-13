@@ -61,3 +61,18 @@ func (t Target) Validate() error {
 
 	return nil
 }
+
+// verifiedPatch verifies the binary against the target and returns the requested patch.
+func (t Target) verifiedPatch(data []byte, id PatchID) (Patch, error) {
+	if _, err := t.Inspect(data); err != nil {
+		return Patch{}, err
+	}
+
+	for _, patch := range t.Patches {
+		if patch.ID == id {
+			return patch, nil
+		}
+	}
+
+	return Patch{}, fmt.Errorf("target %q: unknown patch ID %q", t.ID, id)
+}

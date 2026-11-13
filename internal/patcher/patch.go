@@ -77,3 +77,25 @@ func editsOverlap(a, b Edit) bool {
 	bEnd := b.Offset + int64(len(b.Original))
 	return a.Offset < bEnd && b.Offset < aEnd
 }
+
+// apply returns a copy of data with all edits applied. The target and binary must have already been verified.
+func (p Patch) apply(data []byte) []byte {
+	result := bytes.Clone(data)
+
+	for _, edit := range p.Edits {
+		copy(result[edit.Offset:], edit.Replacement)
+	}
+
+	return result
+}
+
+// reverse returns a copy of dat with all edits reversed. The target and binary must have already been verified.
+func (p Patch) reverse(data []byte) []byte {
+	result := bytes.Clone(data)
+
+	for _, edit := range p.Edits {
+		copy(result[edit.Offset:], edit.Original)
+	}
+
+	return result
+}
