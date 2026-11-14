@@ -86,8 +86,6 @@ CI runs the unit tests and checks that integration-tagged
 tests compile and pass static analysis. Actual integration
 tests must be run locally with the required game fixtures.
 
-
-
 ## Disclaimer
 
 This is an unofficial community project. It is not affiliated with the game's developers or publishers. Game files are not distributed with this project.
