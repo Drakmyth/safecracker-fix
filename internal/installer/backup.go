@@ -57,32 +57,5 @@ func (i Installation) EnsureBackup() error {
 		return fmt.Errorf("reconstructed original hash mismatch")
 	}
 
-	return writeBackup(backupPath, original)
-}
-
-// writeBackup creates a new backup without overwriting any existing file.
-func writeBackup(path string, data []byte) error {
-	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
-	if err != nil {
-		return fmt.Errorf("create backup: %w", err)
-	}
-
-	if _, err := file.Write(data); err != nil {
-		file.Close()
-		os.Remove(path)
-		return fmt.Errorf("write backup: %w", err)
-	}
-
-	if err := file.Sync(); err != nil {
-		file.Close()
-		os.Remove(path)
-		return fmt.Errorf("sync backup: %w", err)
-	}
-
-	if err := file.Close(); err != nil {
-		os.Remove(path)
-		return fmt.Errorf("close backup: %w", err)
-	}
-
-	return nil
+	return writeNewFile(backupPath, original)
 }

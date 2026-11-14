@@ -6,7 +6,8 @@ A Windows compatibility utility for *Safecracker: The Ultimate Puzzle Adventure*
 
 ## Overview
 
-Safecracker Fix Utility aims to make the game easier to run on modern Windows systems by addressing performance and graphics compatibility issues.
+Safecracker Fix Utility aims to make the game easier to run on modern Windows systems by addressing performance and graphics
+compatibility issues.
 
 ## Planned features
 
@@ -50,19 +51,16 @@ Unit tests do not require a copy of Safecracker.
 
 ### Integration tests
 
-Integration tests verify the patcher against actual game
-executables. They require local fixtures that are not included
-in this repository.
+Integration tests verify the patcher against actual game executables. They require local fixtures that are not included in
+this repository.
 
-For the v1.01 Steam target, copy an original, unmodified
-Safecracker.exe to:
+For the v1.01 Steam target, copy an original, unmodified Safecracker.exe to:
 
 ```
 internal/safecracker/testdata/v101_steam/Safecracker.exe
 ```
 
-The fixture must match the supported executable's SHA-256 hash.
-Do not use an executable that has already been patched.
+The fixture must match the supported executable's SHA-256 hash. Do not use an executable that has already been patched.
 
 Run the integration tests with:
 
@@ -70,25 +68,30 @@ Run the integration tests with:
 go test -tags=integration -count=1 ./...
 ```
 
-This command runs both unit and integration tests. Integration
-tests fail if a required fixture is missing or invalid.
+This command runs both unit and integration tests. Integration tests fail if a required fixture is missing or invalid.
 
-The tests verify the original executable, apply the patch in
-memory, compare the result against the known-good patched
-SHA-256 hash, and confirm that reversing the patch restores
-the original executable exactly.
+The tests verify the original executable, apply the patch in memory, compare the result against the known-good patched SHA-256
+hash, and confirm that reversing the patch restores the original executable exactly.
 
 Integration tests never modify fixture files.
 
 ### Continuous integration
 
-CI runs the unit tests and checks that integration-tagged
-tests compile and pass static analysis. Actual integration
-tests must be run locally with the required game fixtures.
+CI runs the unit tests and checks that integration-tagged tests compile and pass static analysis. Actual integration tests
+must be run locally with the required game fixtures.
 
 ## Disclaimer
 
-This is an unofficial community project. It is not affiliated with the game's developers or publishers. Game files are not distributed with this project.
+This is an unofficial community project. It is not affiliated with the game's developers or publishers. Game files are not
+distributed with this project.
+
+## Third-Party Software
+
+The graphics compatibility fix includes [dgVoodoo2](https://github.com/dege-diosg/dgVoodoo2) v2.87.6 by Dege. The complete,
+unmodified dgVoodoo2 distribution archive is bundled with Safecracker Fix and redistributed under its own [redistribution
+terms](https://www.dege.freeweb.hu/dgVoodoo2/ReadmeGeneral/).
+
+dgVoodoo2 is not covered by this project's license.
 
 ## License
 
