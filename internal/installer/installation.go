@@ -21,6 +21,10 @@ type Installation struct {
 // Inspect identifies a Safecracker installation and determines the state of its supported patches.
 // It does not modify any files.
 func Inspect(directory string) (*Installation, error) {
+	return inspect(directory, safecracker.SupportedTargets())
+}
+
+func inspect(directory string, targets []patcher.Target) (*Installation, error) {
 	if directory == "" {
 		return nil, fmt.Errorf("installation directory is empty")
 	}
@@ -37,7 +41,7 @@ func Inspect(directory string) (*Installation, error) {
 		return nil, fmt.Errorf("read game executable: %w", err)
 	}
 
-	for _, target := range safecracker.SupportedTargets() {
+	for _, target := range targets {
 		inspection, err := target.Inspect(data)
 		if err != nil {
 			continue
