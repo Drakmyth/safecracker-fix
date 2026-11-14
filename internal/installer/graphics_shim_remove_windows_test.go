@@ -20,7 +20,7 @@ func TestRestoreGraphicsShimLockedDLL(t *testing.T) {
 	configPath := filepath.Join(directory, dgvoodoo.CONFIG_FILENAME)
 
 	// Install the shim.
-	if _, err := applyGraphicsShim(directory, bundle); err != nil {
+	if _, err := installGraphicsShim(directory, bundle); err != nil {
 		t.Fatal(err)
 	}
 
@@ -32,7 +32,7 @@ func TestRestoreGraphicsShimLockedDLL(t *testing.T) {
 	defer file.Close()
 
 	// Restoration should fail while the DLL is locked.
-	got, err := restoreGraphicsShim(directory, bundle)
+	got, err := removeGraphicsShim(directory, bundle)
 	if err == nil {
 		t.Fatal("expected restoration to fail with locked DLL")
 	}
@@ -59,7 +59,7 @@ func TestRestoreGraphicsShimLockedDLL(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	got, err = restoreGraphicsShim(directory, bundle)
+	got, err = removeGraphicsShim(directory, bundle)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -83,7 +83,7 @@ func TestRestoreGraphicsShimLockedConfig(t *testing.T) {
 	dllPath := filepath.Join(directory, dgvoodoo.D3D9_FILENAME)
 	configPath := filepath.Join(directory, dgvoodoo.CONFIG_FILENAME)
 
-	if _, err := applyGraphicsShim(directory, bundle); err != nil {
+	if _, err := installGraphicsShim(directory, bundle); err != nil {
 		t.Fatal(err)
 	}
 
@@ -94,7 +94,7 @@ func TestRestoreGraphicsShimLockedConfig(t *testing.T) {
 	}
 	defer file.Close()
 
-	got, err := restoreGraphicsShim(directory, bundle)
+	got, err := removeGraphicsShim(directory, bundle)
 	if err == nil {
 		t.Fatal("expected restoration to fail with locked config")
 	}
@@ -121,7 +121,7 @@ func TestRestoreGraphicsShimLockedConfig(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	got, err = restoreGraphicsShim(directory, bundle)
+	got, err = removeGraphicsShim(directory, bundle)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -133,7 +133,7 @@ func TestApplyGraphicsShim(t *testing.T) {
 				}
 			}
 
-			got, err := applyGraphicsShim(directory, bundle)
+			got, err := installGraphicsShim(directory, bundle)
 
 			if tt.wantErr {
 				if err == nil {
@@ -168,7 +168,7 @@ func TestApplyGraphicsShimIdempotent(t *testing.T) {
 		Config: []byte(dgvoodoo.CONFIG_OWNERSHIP_MARKER + "\n\nVersion = 0x287\n"),
 	}
 
-	if _, err := applyGraphicsShim(directory, bundle); err != nil {
+	if _, err := installGraphicsShim(directory, bundle); err != nil {
 		t.Fatal(err)
 	}
 
@@ -186,7 +186,7 @@ func TestApplyGraphicsShimIdempotent(t *testing.T) {
 		}
 	}
 
-	got, err := applyGraphicsShim(directory, bundle)
+	got, err := installGraphicsShim(directory, bundle)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -7,16 +7,16 @@ import (
 	"github.com/Drakmyth/safecracker-fix/internal/dgvoodoo"
 )
 
-func (i *Installation) ApplyGraphicsShim() (*GraphicsShimInspection, error) {
+func (i *Installation) InstallGraphicsShim() (*GraphicsShimInspection, error) {
 	bundle, err := dgvoodoo.Load()
 	if err != nil {
 		return nil, err
 	}
 
-	return applyGraphicsShim(i.Directory, bundle)
+	return installGraphicsShim(i.Directory, bundle)
 }
 
-func applyGraphicsShim(directory string, bundle *dgvoodoo.Bundle) (*GraphicsShimInspection, error) {
+func installGraphicsShim(directory string, bundle *dgvoodoo.Bundle) (*GraphicsShimInspection, error) {
 	inspection, err := inspectGraphicsShim(directory, bundle)
 	if err != nil {
 		return nil, err

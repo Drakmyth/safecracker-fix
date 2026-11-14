@@ -51,7 +51,7 @@ func TestGraphicsShimIntegration(t *testing.T) {
 	}
 
 	// Install the actual bundled graphics shim.
-	graphics, err = installation.ApplyGraphicsShim()
+	graphics, err = installation.InstallGraphicsShim()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -87,7 +87,7 @@ func TestGraphicsShimIntegration(t *testing.T) {
 	assertFileContents(t, installation.BackupPath(), original)
 
 	// Remove the shim without reversing the performance fix.
-	graphics, err = installation.RestoreGraphicsShim()
+	graphics, err = installation.RemoveGraphicsShim()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -101,7 +101,7 @@ func TestGraphicsShimIntegration(t *testing.T) {
 	assertFileContents(t, executablePath, patched)
 
 	// Reinstall the shim while the executable remains patched.
-	graphics, err = installation.ApplyGraphicsShim()
+	graphics, err = installation.InstallGraphicsShim()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -121,7 +121,7 @@ func TestGraphicsShimIntegration(t *testing.T) {
 	assertFileContents(t, configPath, bundle.Config)
 
 	// Restore the graphics shim again.
-	graphics, err = installation.RestoreGraphicsShim()
+	graphics, err = installation.RemoveGraphicsShim()
 	if err != nil {
 		t.Fatal(err)
 	}

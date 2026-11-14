@@ -128,7 +128,7 @@ func TestRestoreGraphicsShim(t *testing.T) {
 				}
 			}
 
-			got, err := restoreGraphicsShim(directory, bundle)
+			got, err := removeGraphicsShim(directory, bundle)
 
 			if tt.wantErr {
 				if err == nil {
@@ -171,7 +171,7 @@ func TestGraphicsShimLifecycle(t *testing.T) {
 	)
 
 	// Install the shim.
-	got, err := applyGraphicsShim(directory, bundle)
+	got, err := installGraphicsShim(directory, bundle)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -188,7 +188,7 @@ func TestGraphicsShimLifecycle(t *testing.T) {
 	}
 
 	// Restore removes the DLL but preserves the configuration.
-	got, err = restoreGraphicsShim(directory, bundle)
+	got, err = removeGraphicsShim(directory, bundle)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -201,7 +201,7 @@ func TestGraphicsShimLifecycle(t *testing.T) {
 	assertFileContents(t, configPath, modifiedConfig)
 
 	// Repeated restoration must preserve the configuration.
-	got, err = restoreGraphicsShim(directory, bundle)
+	got, err = removeGraphicsShim(directory, bundle)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -214,7 +214,7 @@ func TestGraphicsShimLifecycle(t *testing.T) {
 	assertFileContents(t, configPath, modifiedConfig)
 
 	// Reinstall the DLL using the retained configuration.
-	got, err = applyGraphicsShim(directory, bundle)
+	got, err = installGraphicsShim(directory, bundle)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -236,7 +236,7 @@ func TestGraphicsShimLifecycle(t *testing.T) {
 	}
 
 	// Restore now removes both files.
-	got, err = restoreGraphicsShim(directory, bundle)
+	got, err = removeGraphicsShim(directory, bundle)
 	if err != nil {
 		t.Fatal(err)
 	}
