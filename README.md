@@ -36,11 +36,57 @@ go build -o bin/safecracker-fix.exe ./cmd/safecracker-fix
 go run ./cmd/safecracker-fix
 ```
 
-### Test
+## Testing
+
+### Unit tests
+
+Run the unit tests with:
 
 ```powershell
 go test ./...
 ```
+
+Unit tests do not require a copy of Safecracker.
+
+### Integration tests
+
+Integration tests verify the patcher against actual game
+executables. They require local fixtures that are not included
+in this repository.
+
+For the v1.01 Steam target, copy an original, unmodified
+Safecracker.exe to:
+
+```
+internal/safecracker/testdata/v101_steam/Safecracker.exe
+```
+
+The fixture must match the supported executable's SHA-256 hash.
+Do not use an executable that has already been patched.
+
+Run the integration tests with:
+
+```powershell
+go test -tags=integration -count=1 ./...
+```
+
+This command runs both unit and integration tests. Integration
+tests fail if a required fixture is missing or invalid.
+
+The tests verify the original executable, apply the patch in
+memory, compare the result against the known-good patched
+SHA-256 hash, and confirm that reversing the patch restores
+the original executable exactly.
+
+Integration tests never modify fixture files.
+
+### Continuous integration
+
+CI runs the unit tests and checks that integration-tagged
+tests compile and pass static analysis. Actual integration
+tests must be run locally with the required game fixtures.
+
+
 
 ## Disclaimer
 

@@ -9,3 +9,6 @@ coverage.out
 # Local development
 .vscode/
 .idea/
+
+# Local integration test fixtures (copyrighted game binaries)
+/internal/safecracker/testdata/**/*.exe
