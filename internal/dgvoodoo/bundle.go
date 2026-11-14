@@ -10,12 +10,13 @@ import (
 )
 
 const (
-	VERSION           = "2.87.6"
-	ARCHIVE_SHA256    = "9afa493396feec7108f42a2d97661eef96bbaac5addf0dfb5cfbc3001cd76a0a"
-	D3D9_ARCHIVE_PATH = "MS/x86/D3D9.dll"
-	D3D9_SHA256       = "060cb161eb7a0c608a520185f0b334db325ad71d69016bc26060c9d5b9651f7d"
-	D3D9_FILENAME     = "D3D9.dll"
-	CONFIG_FILENAME   = "dgVoodoo.conf"
+	VERSION                 = "2.87.6"
+	ARCHIVE_SHA256          = "9afa493396feec7108f42a2d97661eef96bbaac5addf0dfb5cfbc3001cd76a0a"
+	D3D9_ARCHIVE_PATH       = "MS/x86/D3D9.dll"
+	D3D9_SHA256             = "060cb161eb7a0c608a520185f0b334db325ad71d69016bc26060c9d5b9651f7d"
+	D3D9_FILENAME           = "D3D9.dll"
+	CONFIG_FILENAME         = "dgVoodoo.conf"
+	CONFIG_OWNERSHIP_MARKER = "; Managed by Safecracker Fix"
 )
 
 //go:embed assets/dgVoodoo2_87_6.zip
@@ -79,4 +80,14 @@ func extractFile(reader *zip.Reader, path string) ([]byte, error) {
 	}
 
 	return nil, fmt.Errorf("archive entry not found: %s", path)
+}
+
+func IsManagedConfig(data []byte) bool {
+	for _, line := range bytes.Split(data, []byte("\n")) {
+		if string(bytes.TrimSpace(line)) == CONFIG_OWNERSHIP_MARKER {
+			return true
+		}
+	}
+
+	return false
 }

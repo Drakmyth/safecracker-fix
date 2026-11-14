@@ -209,3 +209,60 @@ func TestExtractFile(t *testing.T) {
 		})
 	}
 }
+
+func TestIsManagedConfig(t *testing.T) {
+	tests := []struct {
+		name string
+		data string
+		want bool
+	}{
+		{
+			name: "empty configuration",
+		},
+		{
+			name: "unmarked configuration",
+			data: "Version = 0x287\n",
+		},
+		{
+			name: "exact marker",
+			data: CONFIG_OWNERSHIP_MARKER,
+			want: true,
+		},
+		{
+			name: "embedded configuration",
+			data: string(configData),
+			want: true,
+		},
+		{
+			name: "Windows line endings",
+			data: CONFIG_OWNERSHIP_MARKER + "\r\nVersion = 0x287\r\n",
+			want: true,
+		},
+		{
+			name: "surrounding whitespace",
+			data: "  " + CONFIG_OWNERSHIP_MARKER + "  \n",
+			want: true,
+		},
+		{
+			name: "marker after other settings",
+			data: "Version = 0x287\n" + CONFIG_OWNERSHIP_MARKER,
+			want: true,
+		},
+		{
+			name: "partial marker",
+			data: "; Managed by Safecracker",
+		},
+		{
+			name: "marker with additional text",
+			data: CONFIG_OWNERSHIP_MARKER + " (old)",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := IsManagedConfig([]byte(tt.data)); got != tt.want {
+				t.Errorf("IsManagedConfig() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
