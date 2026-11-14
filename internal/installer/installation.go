@@ -57,3 +57,8 @@ func inspect(directory string, targets []patcher.Target) (*Installation, error) 
 
 	return nil, fmt.Errorf("unsupported Safecraacker executable: %s", executablePath)
 }
+
+// refresh returns an updated inspection of this installation using its previously identified target.
+func (i Installation) refresh() (*Installation, error) {
+	return inspect(i.Directory, []patcher.Target{i.Target})
+}
