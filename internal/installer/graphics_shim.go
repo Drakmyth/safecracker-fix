@@ -10,36 +10,36 @@ import (
 	"github.com/Drakmyth/safecracker-fix/internal/dgvoodoo"
 )
 
-type GraphicsState int
+type GraphicsShimState int
 
 const (
-	GRAPHICS_STATE_UNKNOWN GraphicsState = iota
-	GRAPHICS_STATE_NOT_INSTALLED
-	GRAPHICS_STATE_MANAGED
-	GRAPHICS_STATE_EXTERNAL
-	GRAPHICS_STATE_INCOMPLETE
-	GRAPHICS_STATE_CONFLICT
+	GRAPHICS_SHIM_STATE_UNKNOWN GraphicsShimState = iota
+	GRAPHICS_SHIM_STATE_NOT_INSTALLED
+	GRAPHICS_SHIM_STATE_MANAGED
+	GRAPHICS_SHIM_STATE_EXTERNAL
+	GRAPHICS_SHIM_STATE_INCOMPLETE
+	GRAPHICS_SHIM_STATE_CONFLICT
 )
 
-func (s GraphicsState) String() string {
+func (s GraphicsShimState) String() string {
 	switch s {
-	case GRAPHICS_STATE_NOT_INSTALLED:
+	case GRAPHICS_SHIM_STATE_NOT_INSTALLED:
 		return "Not installed"
-	case GRAPHICS_STATE_MANAGED:
+	case GRAPHICS_SHIM_STATE_MANAGED:
 		return "Managed installation"
-	case GRAPHICS_STATE_EXTERNAL:
+	case GRAPHICS_SHIM_STATE_EXTERNAL:
 		return "External installation"
-	case GRAPHICS_STATE_INCOMPLETE:
+	case GRAPHICS_SHIM_STATE_INCOMPLETE:
 		return "Incomplete installation"
-	case GRAPHICS_STATE_CONFLICT:
+	case GRAPHICS_SHIM_STATE_CONFLICT:
 		return "Conflicting installation"
 	default:
 		return "Unknown"
 	}
 }
 
-type GraphicsInspection struct {
-	State         GraphicsState
+type GraphicsShimInspection struct {
+	State         GraphicsShimState
 	DLLExists     bool
 	DLLMatches    bool
 	ConfigExists  bool
@@ -47,16 +47,16 @@ type GraphicsInspection struct {
 	ConfigMatches bool
 }
 
-func (i *Installation) InspectGraphics() (*GraphicsInspection, error) {
+func (i *Installation) InspectGraphicsShim() (*GraphicsShimInspection, error) {
 	bundle, err := dgvoodoo.Load()
 	if err != nil {
 		return nil, err
 	}
 
-	return inspectGraphics(i.Directory, bundle)
+	return inspectGraphicsShim(i.Directory, bundle)
 }
 
-func inspectGraphics(directory string, bundle *dgvoodoo.Bundle) (*GraphicsInspection, error) {
+func inspectGraphicsShim(directory string, bundle *dgvoodoo.Bundle) (*GraphicsShimInspection, error) {
 	dllPath := filepath.Join(directory, dgvoodoo.D3D9_FILENAME)
 	configPath := filepath.Join(directory, dgvoodoo.CONFIG_FILENAME)
 
@@ -70,7 +70,7 @@ func inspectGraphics(directory string, bundle *dgvoodoo.Bundle) (*GraphicsInspec
 		return nil, err
 	}
 
-	result := &GraphicsInspection{
+	result := &GraphicsShimInspection{
 		DLLExists:     dllExists,
 		DLLMatches:    dllExists && bytes.Equal(dll, bundle.D3D9),
 		ConfigExists:  configExists,
@@ -80,17 +80,17 @@ func inspectGraphics(directory string, bundle *dgvoodoo.Bundle) (*GraphicsInspec
 
 	switch {
 	case !result.DLLExists && !result.ConfigExists:
-		result.State = GRAPHICS_STATE_NOT_INSTALLED
+		result.State = GRAPHICS_SHIM_STATE_NOT_INSTALLED
 	case result.DLLExists && !result.DLLMatches:
-		result.State = GRAPHICS_STATE_CONFLICT
+		result.State = GRAPHICS_SHIM_STATE_CONFLICT
 	case result.DLLMatches && result.ConfigManaged:
-		result.State = GRAPHICS_STATE_MANAGED
+		result.State = GRAPHICS_SHIM_STATE_MANAGED
 	case result.DLLMatches:
-		result.State = GRAPHICS_STATE_EXTERNAL
+		result.State = GRAPHICS_SHIM_STATE_EXTERNAL
 	case result.ConfigManaged:
-		result.State = GRAPHICS_STATE_INCOMPLETE
+		result.State = GRAPHICS_SHIM_STATE_INCOMPLETE
 	default:
-		result.State = GRAPHICS_STATE_CONFLICT
+		result.State = GRAPHICS_SHIM_STATE_CONFLICT
 	}
 
 	return result, nil

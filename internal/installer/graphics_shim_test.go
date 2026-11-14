@@ -9,7 +9,7 @@ import (
 	"github.com/Drakmyth/safecracker-fix/internal/dgvoodoo"
 )
 
-func TestInspectGraphics(t *testing.T) {
+func TestInspectGraphicsShim(t *testing.T) {
 	bundle := &dgvoodoo.Bundle{
 		D3D9:   []byte{0x01, 0x02, 0x03},
 		Config: []byte(dgvoodoo.CONFIG_OWNERSHIP_MARKER + "\n\nVersion = 0x287\n"),
@@ -24,20 +24,20 @@ func TestInspectGraphics(t *testing.T) {
 		name   string
 		dll    []byte
 		config []byte
-		want   GraphicsInspection
+		want   GraphicsShimInspection
 	}{
 		{
 			name: "not installed",
-			want: GraphicsInspection{
-				State: GRAPHICS_STATE_NOT_INSTALLED,
+			want: GraphicsShimInspection{
+				State: GRAPHICS_SHIM_STATE_NOT_INSTALLED,
 			},
 		},
 		{
 			name:   "managed installation",
 			dll:    bundle.D3D9,
 			config: bundle.Config,
-			want: GraphicsInspection{
-				State:         GRAPHICS_STATE_MANAGED,
+			want: GraphicsShimInspection{
+				State:         GRAPHICS_SHIM_STATE_MANAGED,
 				DLLExists:     true,
 				DLLMatches:    true,
 				ConfigExists:  true,
@@ -49,8 +49,8 @@ func TestInspectGraphics(t *testing.T) {
 			name:   "managed installation with modified config",
 			dll:    bundle.D3D9,
 			config: modifiedConfig,
-			want: GraphicsInspection{
-				State:         GRAPHICS_STATE_MANAGED,
+			want: GraphicsShimInspection{
+				State:         GRAPHICS_SHIM_STATE_MANAGED,
 				DLLExists:     true,
 				DLLMatches:    true,
 				ConfigExists:  true,
@@ -60,8 +60,8 @@ func TestInspectGraphics(t *testing.T) {
 		{
 			name: "external installation without config",
 			dll:  bundle.D3D9,
-			want: GraphicsInspection{
-				State:      GRAPHICS_STATE_EXTERNAL,
+			want: GraphicsShimInspection{
+				State:      GRAPHICS_SHIM_STATE_EXTERNAL,
 				DLLExists:  true,
 				DLLMatches: true,
 			},
@@ -70,8 +70,8 @@ func TestInspectGraphics(t *testing.T) {
 			name:   "external installation with config",
 			dll:    bundle.D3D9,
 			config: otherConfig,
-			want: GraphicsInspection{
-				State:        GRAPHICS_STATE_EXTERNAL,
+			want: GraphicsShimInspection{
+				State:        GRAPHICS_SHIM_STATE_EXTERNAL,
 				DLLExists:    true,
 				DLLMatches:   true,
 				ConfigExists: true,
@@ -80,8 +80,8 @@ func TestInspectGraphics(t *testing.T) {
 		{
 			name:   "incomplete managed installation",
 			config: bundle.Config,
-			want: GraphicsInspection{
-				State:         GRAPHICS_STATE_INCOMPLETE,
+			want: GraphicsShimInspection{
+				State:         GRAPHICS_SHIM_STATE_INCOMPLETE,
 				ConfigExists:  true,
 				ConfigManaged: true,
 				ConfigMatches: true,
@@ -90,8 +90,8 @@ func TestInspectGraphics(t *testing.T) {
 		{
 			name:   "incomplete with modified managed config",
 			config: modifiedConfig,
-			want: GraphicsInspection{
-				State:         GRAPHICS_STATE_INCOMPLETE,
+			want: GraphicsShimInspection{
+				State:         GRAPHICS_SHIM_STATE_INCOMPLETE,
 				ConfigExists:  true,
 				ConfigManaged: true,
 			},
@@ -99,16 +99,16 @@ func TestInspectGraphics(t *testing.T) {
 		{
 			name:   "conflicting config without DLL",
 			config: otherConfig,
-			want: GraphicsInspection{
-				State:        GRAPHICS_STATE_CONFLICT,
+			want: GraphicsShimInspection{
+				State:        GRAPHICS_SHIM_STATE_CONFLICT,
 				ConfigExists: true,
 			},
 		},
 		{
 			name: "conflicting DLL without config",
 			dll:  otherDLL,
-			want: GraphicsInspection{
-				State:     GRAPHICS_STATE_CONFLICT,
+			want: GraphicsShimInspection{
+				State:     GRAPHICS_SHIM_STATE_CONFLICT,
 				DLLExists: true,
 			},
 		},
@@ -116,8 +116,8 @@ func TestInspectGraphics(t *testing.T) {
 			name:   "conflicting DLL with external config",
 			dll:    otherDLL,
 			config: otherConfig,
-			want: GraphicsInspection{
-				State:        GRAPHICS_STATE_CONFLICT,
+			want: GraphicsShimInspection{
+				State:        GRAPHICS_SHIM_STATE_CONFLICT,
 				DLLExists:    true,
 				ConfigExists: true,
 			},
@@ -126,8 +126,8 @@ func TestInspectGraphics(t *testing.T) {
 			name:   "conflicting DLL with managed config",
 			dll:    otherDLL,
 			config: bundle.Config,
-			want: GraphicsInspection{
-				State:         GRAPHICS_STATE_CONFLICT,
+			want: GraphicsShimInspection{
+				State:         GRAPHICS_SHIM_STATE_CONFLICT,
 				DLLExists:     true,
 				ConfigExists:  true,
 				ConfigManaged: true,
@@ -137,16 +137,16 @@ func TestInspectGraphics(t *testing.T) {
 		{
 			name: "empty DLL",
 			dll:  []byte{},
-			want: GraphicsInspection{
-				State:     GRAPHICS_STATE_CONFLICT,
+			want: GraphicsShimInspection{
+				State:     GRAPHICS_SHIM_STATE_CONFLICT,
 				DLLExists: true,
 			},
 		},
 		{
 			name:   "empty config",
 			config: []byte{},
-			want: GraphicsInspection{
-				State:        GRAPHICS_STATE_CONFLICT,
+			want: GraphicsShimInspection{
+				State:        GRAPHICS_SHIM_STATE_CONFLICT,
 				ConfigExists: true,
 			},
 		},
@@ -171,7 +171,7 @@ func TestInspectGraphics(t *testing.T) {
 				}
 			}
 
-			got, err := inspectGraphics(directory, bundle)
+			got, err := inspectGraphicsShim(directory, bundle)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -191,7 +191,7 @@ func TestInspectGraphics(t *testing.T) {
 	}
 }
 
-func TestInspectGraphicsReadError(t *testing.T) {
+func TestInspectGraphicsShimReadError(t *testing.T) {
 	bundle := &dgvoodoo.Bundle{
 		D3D9:   []byte{0x01, 0x02, 0x03},
 		Config: []byte(dgvoodoo.CONFIG_OWNERSHIP_MARKER),
@@ -209,7 +209,7 @@ func TestInspectGraphicsReadError(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			got, err := inspectGraphics(directory, bundle)
+			got, err := inspectGraphicsShim(directory, bundle)
 
 			if err == nil {
 				t.Fatal("expected read error")
