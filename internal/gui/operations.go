@@ -25,8 +25,7 @@ func (w *Window) runOperation(status string, errorTitle string, operation func()
 				walk.MsgBox(w.mainWindow, errorTitle, err.Error(), walk.MsgBoxIconError)
 			}
 
-			w.directoryChanged()
-			w.directoryEditingFinished()
+			w.requestImmediateDirectoryValidation()
 		})
 	}()
 }

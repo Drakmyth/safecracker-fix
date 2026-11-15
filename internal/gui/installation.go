@@ -58,30 +58,11 @@ func (w *Window) browseDirectory() {
 	}
 
 	w.directoryEdit.SetText(directory)
-	w.directoryEditingFinished()
+	w.requestImmediateDirectoryValidation()
 }
 
 func (w *Window) directoryChanged() {
-	if w.closing {
-		return
-	}
-	w.cancelDirectoryValidation()
-
-	w.installation = nil
-	w.graphicsInspection = nil
-
-	w.performanceFix.configure("Unknown", w.statusIcons[STATUS_ICON_UNKNOWN], "Apply", false)
-	w.graphicsFix.configure("Unknown", w.statusIcons[STATUS_ICON_UNKNOWN], "Apply", false)
-
-	directory := w.directoryPath()
-
-	if directory == "" {
-		w.targetLabel.SetText("No installation selected")
-		return
-	}
-
-	w.targetLabel.SetText("Waiting to check installation...")
-	w.scheduleDirectoryValidation(directory)
+	w.requestDirectoryValidation()
 }
 
 func (w *Window) validateDirectory(directory string) {
@@ -156,10 +137,50 @@ func (w *Window) directoryEditingFinished() {
 		return
 	}
 
-	w.cancelDirectoryValidation()
-	w.validateDirectory(w.directoryPath())
+	w.requestImmediateDirectoryValidation()
 }
 
 func (w *Window) directoryPath() string {
 	return strings.TrimSpace(w.directoryEdit.Text())
+}
+
+func (w *Window) resetInstallation() {
+	w.installation = nil
+	w.graphicsInspection = nil
+
+	w.performanceFix.configure("Unknown", w.statusIcons[STATUS_ICON_UNKNOWN], "Apply", false)
+	w.graphicsFix.configure("Unknown", w.statusIcons[STATUS_ICON_UNKNOWN], "Apply", false)
+
+	w.statusLabel.SetText("Ready")
+}
+
+func (w *Window) requestImmediateDirectoryValidation() {
+	w.processDirectoryValidationRequest(false)
+}
+
+func (w *Window) requestDirectoryValidation() {
+	w.processDirectoryValidationRequest(true)
+}
+
+func (w *Window) processDirectoryValidationRequest(debounce bool) {
+	if w.closing {
+		return
+	}
+
+	w.cancelDirectoryValidation()
+	w.resetInstallation()
+
+	directory := w.directoryPath()
+
+	if directory == "" {
+		w.targetLabel.SetText("No installation selected")
+		return
+	}
+
+	if debounce {
+		w.targetLabel.SetText("Waiting to check installation...")
+		w.scheduleDirectoryValidation(directory)
+	} else {
+		w.validateDirectory(directory)
+	}
 }
