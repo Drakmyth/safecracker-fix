@@ -69,15 +69,8 @@ func (w *Window) directoryChanged() {
 
 	w.installation = nil
 
-	w.performanceStatus.SetText("Unknown")
-	w.performanceIcon.SetImage(w.statusIcons[STATUS_ICON_UNKNOWN])
-	w.performanceButton.SetText("Apply")
-	w.performanceButton.SetEnabled(false)
-
-	w.graphicsStatus.SetText("Unknown")
-	w.graphicsIcon.SetImage(w.statusIcons[STATUS_ICON_UNKNOWN])
-	w.graphicsButton.SetText("Apply")
-	w.graphicsButton.SetEnabled(false)
+	w.performanceFix.configure("Unknown", w.statusIcons[STATUS_ICON_UNKNOWN], "Apply", false)
+	w.graphicsFix.configure("Unknown", w.statusIcons[STATUS_ICON_UNKNOWN], "Apply", false)
 
 	directory := w.directoryPath()
 
@@ -98,6 +91,13 @@ func (w *Window) validateDirectory(directory string) {
 	go func() {
 		installation, err := installer.Inspect(directory)
 
+		var graphicsInspection *installer.GraphicsShimInspection
+		var graphicsErr error
+
+		if err == nil {
+			graphicsInspection, graphicsErr = installation.InspectGraphicsShim()
+		}
+
 		w.mainWindow.Synchronize(func() {
 			if w.closing || revision != w.directoryRevision {
 				return
@@ -111,6 +111,16 @@ func (w *Window) validateDirectory(directory string) {
 
 			w.installation = installation
 			w.targetLabel.SetText(installation.Target.Name)
+			w.refreshPerformanceFix(installation.Inspection)
+
+			if graphicsErr != nil {
+				w.graphicsFix.configure("Unknown", w.statusIcons[STATUS_ICON_UNKNOWN], "Apply", false)
+				w.statusLabel.SetText("Unable to inspect graphics fix")
+				return
+			}
+
+			w.refreshGraphicsFix(graphicsInspection)
+			w.statusLabel.SetText("Ready")
 		})
 	}()
 }

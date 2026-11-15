@@ -18,16 +18,11 @@ type Window struct {
 	browseButton  *walk.PushButton
 	targetLabel   *walk.Label
 
-	graphicsStatus *walk.Label
-	graphicsButton *walk.PushButton
+	performanceFix fixControls
+	graphicsFix    fixControls
 
-	performanceStatus *walk.Label
-	performanceButton *walk.PushButton
-
-	statusIcons     map[StatusIcon]*walk.Bitmap
-	graphicsIcon    *walk.ImageView
-	performanceIcon *walk.ImageView
-	statusLabel     *walk.Label
+	statusIcons map[StatusIcon]*walk.Bitmap
+	statusLabel *walk.Label
 
 	installation      *installer.Installation
 	directoryTimer    *time.Timer
