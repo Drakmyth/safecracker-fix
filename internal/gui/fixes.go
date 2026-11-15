@@ -43,6 +43,7 @@ func (w *Window) fixesSection() d.GroupBox {
 				w.statusIcons[STATUS_ICON_UNKNOWN],
 				&w.graphicsFix.status,
 				&w.graphicsFix.button,
+				nil,
 			),
 			d.VSeparator{},
 			fixRow(
@@ -52,6 +53,7 @@ func (w *Window) fixesSection() d.GroupBox {
 				w.statusIcons[STATUS_ICON_UNKNOWN],
 				&w.performanceFix.status,
 				&w.performanceFix.button,
+				w.togglePerformanceFix,
 			),
 		},
 	}
@@ -64,6 +66,7 @@ func fixRow(
 	initialIcon *walk.Bitmap,
 	status **walk.Label,
 	button **walk.PushButton,
+	onClicked walk.EventHandler,
 ) d.Composite {
 	return d.Composite{
 		Layout: d.HBox{
@@ -81,11 +84,12 @@ func fixRow(
 			fixDetails(name, description, status),
 			d.HSpacer{},
 			d.PushButton{
-				AssignTo: button,
-				Text:     "Apply",
-				Enabled:  false,
-				MinSize:  d.Size{Width: 90, Height: 34},
-				MaxSize:  d.Size{Width: 90},
+				AssignTo:  button,
+				Text:      "Apply",
+				Enabled:   false,
+				OnClicked: onClicked,
+				MinSize:   d.Size{Width: 90, Height: 34},
+				MaxSize:   d.Size{Width: 90},
 			},
 		},
 	}
@@ -182,4 +186,51 @@ func (w *Window) refreshGraphicsFix(inspection *installer.GraphicsShimInspection
 	}
 
 	w.graphicsFix.configure(status, w.statusIcons[icon], buttonText, enabled)
+}
+
+func (w *Window) togglePerformanceFix() {
+	if w.busy || w.installation == nil {
+		return
+	}
+
+	installation := w.installation
+	state := installation.Inspection.Patches[safecracker.PATCH_FPU_PRESERVE]
+
+	var remove bool
+
+	switch state {
+	case patcher.PATCH_STATE_APPLIED:
+		remove = true
+	case patcher.PATCH_STATE_UNAPPLIED, patcher.PATCH_STATE_PARTIAL:
+		remove = false
+	default:
+		return
+	}
+
+	if remove {
+		w.beginOperation("Removing performance fix...")
+	} else {
+		w.beginOperation("Applying performance fix...")
+	}
+
+	go func() {
+		var err error
+
+		if remove {
+			_, err = installation.Reverse(safecracker.PATCH_FPU_PRESERVE)
+		} else {
+			_, err = installation.Apply(safecracker.PATCH_FPU_PRESERVE)
+		}
+
+		w.mainWindow.Synchronize(func() {
+			w.endOperation()
+
+			if err != nil {
+				walk.MsgBox(w.mainWindow, "Performance Fix Error", err.Error(), walk.MsgBoxIconError)
+			}
+
+			w.directoryChanged()
+			w.directoryEditingFinished()
+		})
+	}()
 }

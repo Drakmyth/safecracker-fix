@@ -13,6 +13,7 @@ type Window struct {
 	mainWindow *walk.MainWindow
 	version    string
 	closing    bool
+	busy       bool
 
 	directoryEdit *walk.LineEdit
 	browseButton  *walk.PushButton
@@ -65,6 +66,11 @@ func Run(version string) error {
 	w.mainWindow.Closing().Attach(
 		func(canceled *bool, reason walk.CloseReason) {
 			if *canceled {
+				return
+			}
+
+			if w.busy {
+				*canceled = true
 				return
 			}
 
