@@ -1,7 +1,14 @@
 package main
 
-import "fmt"
+import (
+	"log"
+
+	safecrackerfix "github.com/Drakmyth/safecracker-fix"
+	"github.com/Drakmyth/safecracker-fix/internal/gui"
+)
 
 func main() {
-	fmt.Println("Safecracker Fix Utility")
+	if err := gui.Run(safecrackerfix.Version()); err != nil {
+		log.Fatal(err)
+	}
 }
