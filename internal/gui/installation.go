@@ -4,6 +4,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Drakmyth/safecracker-fix/internal/installer"
 	"github.com/lxn/walk"
 	d "github.com/lxn/walk/declarative"
 )
@@ -61,6 +62,9 @@ func (w *Window) browseDirectory() {
 }
 
 func (w *Window) directoryChanged() {
+	if w.closing {
+		return
+	}
 	w.cancelDirectoryValidation()
 
 	w.installation = nil
@@ -88,6 +92,27 @@ func (w *Window) directoryChanged() {
 
 func (w *Window) validateDirectory(directory string) {
 	w.targetLabel.SetText("Checking installation...")
+
+	revision := w.directoryRevision
+
+	go func() {
+		installation, err := installer.Inspect(directory)
+
+		w.mainWindow.Synchronize(func() {
+			if w.closing || revision != w.directoryRevision {
+				return
+			}
+
+			if err != nil {
+				w.installation = nil
+				w.targetLabel.SetText("No supported installation found")
+				return
+			}
+
+			w.installation = installation
+			w.targetLabel.SetText(installation.Target.Name)
+		})
+	}()
 }
 
 func (w *Window) cancelDirectoryValidation() {
@@ -104,7 +129,7 @@ func (w *Window) scheduleDirectoryValidation(directory string) {
 
 	w.directoryTimer = time.AfterFunc(DIRECTORY_VALIDATION_DELAY, func() {
 		w.mainWindow.Synchronize(func() {
-			if revision != w.directoryRevision {
+			if w.closing || revision != w.directoryRevision {
 				return
 			}
 

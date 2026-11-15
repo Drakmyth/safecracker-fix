@@ -12,6 +12,7 @@ import (
 type Window struct {
 	mainWindow *walk.MainWindow
 	version    string
+	closing    bool
 
 	directoryEdit *walk.LineEdit
 	browseButton  *walk.PushButton
@@ -65,6 +66,17 @@ func Run(version string) error {
 	if err := window.Create(); err != nil {
 		return err
 	}
+
+	w.mainWindow.Closing().Attach(
+		func(canceled *bool, reason walk.CloseReason) {
+			if *canceled {
+				return
+			}
+
+			w.closing = true
+			w.cancelDirectoryValidation()
+		},
+	)
 
 	hwnd := w.mainWindow.Handle()
 
