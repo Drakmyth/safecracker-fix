@@ -68,6 +68,7 @@ func (w *Window) directoryChanged() {
 	w.cancelDirectoryValidation()
 
 	w.installation = nil
+	w.graphicsInspection = nil
 
 	w.performanceFix.configure("Unknown", w.statusIcons[STATUS_ICON_UNKNOWN], "Apply", false)
 	w.graphicsFix.configure("Unknown", w.statusIcons[STATUS_ICON_UNKNOWN], "Apply", false)
@@ -119,6 +120,7 @@ func (w *Window) validateDirectory(directory string) {
 				return
 			}
 
+			w.graphicsInspection = graphicsInspection
 			w.refreshGraphicsFix(graphicsInspection)
 			w.statusLabel.SetText("Ready")
 		})

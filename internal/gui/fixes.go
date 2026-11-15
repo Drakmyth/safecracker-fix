@@ -43,7 +43,7 @@ func (w *Window) fixesSection() d.GroupBox {
 				w.statusIcons[STATUS_ICON_UNKNOWN],
 				&w.graphicsFix.status,
 				&w.graphicsFix.button,
-				nil,
+				w.toggleGraphicsFix,
 			),
 			d.VSeparator{},
 			fixRow(
@@ -196,41 +196,37 @@ func (w *Window) togglePerformanceFix() {
 	installation := w.installation
 	state := installation.Inspection.Patches[safecracker.PATCH_FPU_PRESERVE]
 
-	var remove bool
-
 	switch state {
 	case patcher.PATCH_STATE_APPLIED:
-		remove = true
+		w.runOperation("Removing performance fix...", "Performance Fix Error", func() error {
+			_, err := installation.Reverse(safecracker.PATCH_FPU_PRESERVE)
+			return err
+		})
 	case patcher.PATCH_STATE_UNAPPLIED, patcher.PATCH_STATE_PARTIAL:
-		remove = false
-	default:
+		w.runOperation("Applying performance fix...", "Performance Fix Error", func() error {
+			_, err := installation.Apply(safecracker.PATCH_FPU_PRESERVE)
+			return err
+		})
+	}
+}
+
+func (w *Window) toggleGraphicsFix() {
+	if w.busy || w.installation == nil || w.graphicsInspection == nil {
 		return
 	}
 
-	if remove {
-		w.beginOperation("Removing performance fix...")
-	} else {
-		w.beginOperation("Applying performance fix...")
-	}
+	installation := w.installation
 
-	go func() {
-		var err error
-
-		if remove {
-			_, err = installation.Reverse(safecracker.PATCH_FPU_PRESERVE)
-		} else {
-			_, err = installation.Apply(safecracker.PATCH_FPU_PRESERVE)
-		}
-
-		w.mainWindow.Synchronize(func() {
-			w.endOperation()
-
-			if err != nil {
-				walk.MsgBox(w.mainWindow, "Performance Fix Error", err.Error(), walk.MsgBoxIconError)
-			}
-
-			w.directoryChanged()
-			w.directoryEditingFinished()
+	switch w.graphicsInspection.State {
+	case installer.GRAPHICS_SHIM_STATE_MANAGED:
+		w.runOperation("Removing graphics fix...", "Graphics Fix Error", func() error {
+			_, err := installation.RemoveGraphicsShim()
+			return err
 		})
-	}()
+	case installer.GRAPHICS_SHIM_STATE_NOT_INSTALLED, installer.GRAPHICS_SHIM_STATE_INCOMPLETE:
+		w.runOperation("Applying graphics fix...", "Graphics Fix Error", func() error {
+			_, err := installation.InstallGraphicsShim()
+			return err
+		})
+	}
 }

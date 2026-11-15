@@ -25,9 +25,10 @@ type Window struct {
 	statusIcons map[StatusIcon]*walk.Bitmap
 	statusLabel *walk.Label
 
-	installation      *installer.Installation
-	directoryTimer    *time.Timer
-	directoryRevision uint64
+	installation       *installer.Installation
+	graphicsInspection *installer.GraphicsShimInspection
+	directoryTimer     *time.Timer
+	directoryRevision  uint64
 }
 
 func Run(version string) error {
