@@ -2,7 +2,7 @@
 /bin/
 /dist/
 /safecracker-fix
-/safecracker-fix.exe
+*.exe
 *.test
 coverage.out
 
