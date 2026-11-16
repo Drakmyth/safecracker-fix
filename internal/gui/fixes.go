@@ -39,20 +39,16 @@ func (w *Window) fixesSection() d.GroupBox {
 			fixRow(
 				"Graphics Compatibility Fix",
 				"Resolves rendering issues using dgVoodoo2.",
-				&w.graphicsFix.icon,
+				&w.graphicsFix,
 				w.statusIcons[STATUS_ICON_UNKNOWN],
-				&w.graphicsFix.status,
-				&w.graphicsFix.button,
 				w.toggleGraphicsFix,
 			),
 			d.VSeparator{},
 			fixRow(
 				"High Uptime Performance Fix",
 				"Fixes extremely low frame rates.",
-				&w.performanceFix.icon,
+				&w.performanceFix,
 				w.statusIcons[STATUS_ICON_UNKNOWN],
-				&w.performanceFix.status,
-				&w.performanceFix.button,
 				w.togglePerformanceFix,
 			),
 		},
@@ -62,10 +58,8 @@ func (w *Window) fixesSection() d.GroupBox {
 func fixRow(
 	name string,
 	description string,
-	icon **walk.ImageView,
+	controls *fixControls,
 	initialIcon *walk.Bitmap,
-	status **walk.Label,
-	button **walk.PushButton,
 	onClicked walk.EventHandler,
 ) d.Composite {
 	return d.Composite{
@@ -75,16 +69,16 @@ func fixRow(
 		},
 		Children: []d.Widget{
 			d.ImageView{
-				AssignTo: icon,
+				AssignTo: &controls.icon,
 				Image:    initialIcon,
 				Mode:     d.ImageViewModeCenter,
 				MinSize:  d.Size{Width: 32, Height: 32},
 				MaxSize:  d.Size{Width: 32, Height: 32},
 			},
-			fixDetails(name, description, status),
+			fixDetails(name, description, &controls.status),
 			d.HSpacer{},
 			d.PushButton{
-				AssignTo:  button,
+				AssignTo:  &controls.button,
 				Text:      "Apply",
 				Enabled:   false,
 				OnClicked: onClicked,
